@@ -91,7 +91,7 @@ MoveDirection Fib2584Ai::select_move(int board[4][4]){
         compute_next_board(board,board_[i],reward[i],static_cast<MoveDirection>(i));
     }
     next_move = select_maxV_move_and_record(board, board_, reward);
-    return static_cast<MoveDirection>(rand()%4);
+    return next_move;
 }
 void Fib2584Ai::compute_next_board(int board[4][4],int board_[4][4],int &reward,MoveDirection move){
     memcpy(board_,board,sizeof(int)*4*4);
@@ -107,6 +107,34 @@ void Fib2584Ai::compute_next_board(int board[4][4],int board_[4][4],int &reward,
     }
 }
 MoveDirection Fib2584Ai::select_maxV_move_and_record(int board[4][4],int board_[4][4][4], int reward[4]){
+    double value[4];
+    double V_max;
+    vector<int> max_list;
+    MoveDirection move;
+    int move_t;
+    record rec;
+    for(int i=0;i<4;i++){
+        value[i] = Evaluate(board_[i]) + reward[i]; 
+    }
+    V_max = value[0];
+    max_list.push_back(0);
+    for(int i=1;i<4;i++){
+        if(value[i] > V_max){
+            V_max = value[i];
+            max_list.clear();
+            max_list.push_back(i);
+        }else if(value[i] == V_max){
+            max_list.push_back(i);
+        }
+    }
+    move_t = max_list[rand() % max_list.size()];
+    move = static_cast<MoveDirection>(move_t);
+    memcpy((void*)rec.board,board,sizeof(int)*4*4);
+    memcpy((void*)rec.board_,board_[move_t],sizeof(int)*4*4);
+    rec.reward = reward[move_t];
+    Records.push(rec);
+   
+    return move;
 
 }
 int Fib2584Ai::move_col(int board_[4][4],MoveDirection move){
@@ -150,4 +178,34 @@ int Fib2584Ai::move_row(int board_[4][4],MoveDirection move){
         }
     }
     return reward;
+}
+double Fib2584Ai::Evaluate(int board[4][4]){
+    unsigned long index[8],ind;
+    double value=0.0;
+    get_index(board,index);
+    for(int i=0;i<8;i++){
+        value += table[index[i]];
+    }
+    return value;
+}
+void Fib2584Ai::get_index(int board[4][4],unsigned long index[8]){
+    unsigned long tmp=0;
+    for(int i=0;i<4;i++){ 
+        tmp += i * F_MAX * F_MAX * F_MAX * F_MAX;
+        tmp += board[i][0] * F_MAX * F_MAX * F_MAX;
+        tmp += board[i][1] * F_MAX * F_MAX;
+        tmp += board[i][2] * F_MAX;
+        tmp += board[i][3];
+        index[i] = tmp;
+        tmp = 0;
+    }
+    for(int i=0;i<4;i++){
+        tmp += (4+i) * F_MAX * F_MAX * F_MAX * F_MAX;
+        tmp += board[0][i] * F_MAX * F_MAX * F_MAX;
+        tmp += board[1][i] * F_MAX * F_MAX;
+        tmp += board[2][i] * F_MAX;
+        tmp += board[3][i];
+        index[4+i] = tmp;
+        tmp = 0;
+    }
 }

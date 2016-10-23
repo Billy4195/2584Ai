@@ -40,6 +40,8 @@ public:
   MoveDirection select_maxV_move_and_record(int board[4][4],int board_[4][4][4], int reward[4]);
   int move_col(int board_[4][4],MoveDirection move);
   int move_row(int board_[4][4],MoveDirection move);
+  double Evaluate(int board[4][4]);
+  void get_index(int board[4][4],unsigned long index[8]);
 
   stack<record> Records;
   vector<weight> table;
