@@ -24,7 +24,7 @@ void Fib2584Ai::initialize(int argc, char* argv[])
 MoveDirection Fib2584Ai::generateMove(int board[4][4])
 {
     transform_board(board);
-	  MoveDirection randomMove = static_cast<MoveDirection>(rand() % 4);
+	  MoveDirection randomMove = select_move(board);
 	  return randomMove;
 }
 
@@ -80,4 +80,20 @@ void Fib2584Ai::transform_board(int board[4][4]){
             }
         }
     }
+}
+MoveDirection Fib2584Ai::select_move(int board[4][4]){
+    int board_[4][4][4];
+    int reward[4];
+    MoveDirection next_move;
+    for(int i=0;i<4;i++){
+        compute_next_board(board,board_[i],reward[i],static_cast<MoveDirection>(i));
+    }
+    next_move = select_maxV_move_and_record(board, board_, reward);
+    return static_cast<MoveDirection>(rand()%4);
+}
+void Fib2584Ai::compute_next_board(int board[4][4],int board_[4][4],int &reward,MoveDirection move){
+    return;
+}
+MoveDirection Fib2584Ai::select_maxV_move_and_record(int board[4][4],int board_[4][4][4], int reward[4]){
+
 }

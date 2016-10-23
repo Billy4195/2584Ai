@@ -35,6 +35,9 @@ public:
   void get_weight_table();
   void flush_weight_table();
   void transform_board(int board[4][4]);
+  MoveDirection select_move(int board[4][4]);
+  void compute_next_board(int board[4][4],int board_[4][4],int &reward,MoveDirection move);
+  MoveDirection select_maxV_move_and_record(int board[4][4],int board_[4][4][4], int reward[4]);
 
   stack<record> Records;
   vector<weight> table;
