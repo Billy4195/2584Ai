@@ -38,6 +38,8 @@ public:
   MoveDirection select_move(int board[4][4]);
   void compute_next_board(int board[4][4],int board_[4][4],int &reward,MoveDirection move);
   MoveDirection select_maxV_move_and_record(int board[4][4],int board_[4][4][4], int reward[4]);
+  int move_col(int board_[4][4],MoveDirection move);
+  int move_row(int board_[4][4],MoveDirection move);
 
   stack<record> Records;
   vector<weight> table;

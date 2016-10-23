@@ -1,6 +1,7 @@
 #include "Fib2584Ai.h"
 #include <iostream>
 #include <cstdio>
+#include <cstring>
 
 using namespace std;
 
@@ -8,6 +9,7 @@ const int fibonacci_[32] = {0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377,
 
 #define F_MAX 22
 #define TABLE_SIZE 8*F_MAX*F_MAX*F_MAX*F_MAX
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 Fib2584Ai::Fib2584Ai()
 {
@@ -92,8 +94,60 @@ MoveDirection Fib2584Ai::select_move(int board[4][4]){
     return static_cast<MoveDirection>(rand()%4);
 }
 void Fib2584Ai::compute_next_board(int board[4][4],int board_[4][4],int &reward,MoveDirection move){
-    return;
+    memcpy(board_,board,sizeof(int)*4*4);
+    switch(move){
+        case MOVE_UP:
+        case MOVE_DOWN:
+            reward = move_col(board_,move);
+            break;
+        case MOVE_RIGHT:
+        case MOVE_LEFT:
+            reward = move_row(board_,move); 
+            break;
+    }
 }
 MoveDirection Fib2584Ai::select_maxV_move_and_record(int board[4][4],int board_[4][4][4], int reward[4]){
 
+}
+int Fib2584Ai::move_col(int board_[4][4],MoveDirection move){
+    int reward=0;
+    int start_row = move == MOVE_UP ? 0 : 3;
+    int end_row = move == MOVE_UP ? 3 : 0;
+    int it = move == MOVE_UP ? 1 : -1;
+    for(int i=0;i<4;i++){
+        for(int j=start_row; j != end_row ; j += it){
+            if((board_[j][i] == board_[j+it][i] && board_[j][i] == 1) ||
+                (board_[j][i] >= 1 && board_[j+it][i] >= 1 &&abs(board_[j][i] 
+                - board_[j+it][i]) == 1) ){
+                board_[j][i] = MAX(board_[j][i],board_[j+it][i]) + 1;
+                reward += fibonacci_[ board_[j][i] ];
+                for(int k=j+it; k!= end_row; k += it){
+                    board_[k][i] = board_[k+it][i];
+                }
+                board_[end_row][i] = 0;
+            }
+        }
+    }
+    return reward;
+}
+int Fib2584Ai::move_row(int board_[4][4],MoveDirection move){
+    int reward=0;
+    int start_col = move == MOVE_LEFT ? 0 : 3;
+    int end_col = move == MOVE_LEFT ? 3 : 0;
+    int it = move == MOVE_LEFT ? 1 : -1;
+    for(int i=0;i<4;i++){
+        for(int j=start_col; j != end_col ; j += it){
+            if((board_[i][j] == board_[i][j+it] && board_[i][j] == 1) ||
+                (board_[i][j] >= 1 && board_[i][j+it] >= 1 &&abs(board_[i][j] 
+                - board_[i][j+it]) == 1) ){
+                board_[i][j] = MAX(board_[i][j],board_[i][j+it]) + 1;
+                reward += fibonacci_[ board_[i][j] ];
+                for(int k=j+it; k!= end_col; k += it){
+                    board_[i][k] = board_[i][k+it];
+                }
+                board_[i][end_col] = 0;
+            }
+        }
+    }
+    return reward;
 }
