@@ -23,6 +23,7 @@ void Fib2584Ai::initialize(int argc, char* argv[])
 
 MoveDirection Fib2584Ai::generateMove(int board[4][4])
 {
+    transform_board(board);
 	  MoveDirection randomMove = static_cast<MoveDirection>(rand() % 4);
 	  return randomMove;
 }
@@ -68,4 +69,15 @@ void Fib2584Ai::flush_weight_table(){
         }
     }
     fclose(fp);
+}
+void Fib2584Ai::transform_board(int board[4][4]){
+    for(int i=0;i<4;i++){
+        for(int j=0;j<4;j++){
+            for(int t=0;t<32;t++){
+                if(board[i][j] == fibonacci_[t]){
+                    board[i][j] = t;
+                }
+            }
+        }
+    }
 }

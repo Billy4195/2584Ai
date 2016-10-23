@@ -34,6 +34,7 @@ public:
 	**********************************/
   void get_weight_table();
   void flush_weight_table();
+  void transform_board(int board[4][4]);
 
   stack<record> Records;
   vector<weight> table;
