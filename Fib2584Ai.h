@@ -4,6 +4,17 @@
 #include <cstdlib>
 #include <ctime>
 #include "Fib2584/MoveDirection.h"
+#include <stack>
+#include <vector>
+
+using namespace std;
+
+typedef struct{
+    int board[4][4];
+    int board_[4][4];
+    int reward;
+}record;
+
 
 class Fib2584Ai
 {
@@ -20,6 +31,8 @@ public:
 	You can implement any additional functions
 	or define any variables you may need.
 	**********************************/
+  stack<record> Records;
 };
+
 
 #endif
