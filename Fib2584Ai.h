@@ -15,6 +15,7 @@ typedef struct{
     int reward;
 }record;
 
+typedef double weight;
 
 class Fib2584Ai
 {
@@ -31,7 +32,11 @@ public:
 	You can implement any additional functions
 	or define any variables you may need.
 	**********************************/
+  void get_weight_table();
+  void flush_weight_table();
+
   stack<record> Records;
+  vector<weight> table;
 };
 
 
