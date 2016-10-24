@@ -202,6 +202,7 @@ int Fib2584Ai::move_col(int board_[4][4],MoveDirection move){
                     board_[k][i] = board_[k+it][i];
                 }
                 board_[end_row][i] = 0;
+                j -= it;
             }
         }
     }
@@ -242,6 +243,7 @@ int Fib2584Ai::move_row(int board_[4][4],MoveDirection move){
                     board_[i][k] = board_[i][k+it];
                 }
                 board_[i][end_col] = 0;
+                j -= it;
             }
         }
     }
