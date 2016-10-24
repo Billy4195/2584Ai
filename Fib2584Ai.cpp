@@ -43,7 +43,7 @@ void Fib2584Ai::gameOver(int board[4][4], int iScore)
     memcpy((void*)rec.board,board,sizeof(int)*4*4);
     memcpy((void*)rec.board_,board,sizeof(int)*4*4);
     rec.reward = 0;
-    learning_evaluate();
+    learning_evaluate(0);
 	  return;
 }
 
@@ -162,6 +162,7 @@ MoveDirection Fib2584Ai::select_maxV_move_and_record(int board[4][4],int board_[
     memcpy((void*)rec.board,board,sizeof(int)*4*4);
     memcpy((void*)rec.board_,board_[move_t],sizeof(int)*4*4);
     rec.reward = reward[move_t];
+    learning_evaluate(Evaluate(rec.board_)+rec.reward);
     Records.push(rec);
    
     return move;
@@ -279,52 +280,27 @@ void Fib2584Ai::get_index(int board[4][4],unsigned long index[8]){
         tmp = 0;
     }
 }
-void Fib2584Ai::learning_evaluate(){
+void Fib2584Ai::learning_evaluate(double v){
     double R = 0.01;
     double dV;
     double dW;
     double len = 2*sqrt(2);
     unsigned long index[8];
     record tmp_r;
-    tmp_r = Records.top();
-    dV = 0 - Evaluate(tmp_r.board_) ;
-    dW = dV * R / len;
-    get_index(tmp_r.board,index);
-    for(int i=0;i<8;i++){
-        table[index[i]] += dW; 
-    }
 
     while(Records.size() > 1){
         tmp_r = Records.top();
         Records.pop();
 
-        dV = Evaluate(tmp_r.board_) + tmp_r.reward - Evaluate(Records.top().board_) ;
+        dV = v  - Evaluate(tmp_r.board_) ;
         dW = dV * R / len;
-        /*
-        for(int i=0;i<4;i++){
-            for(int j=0;j<4;j++){
-                cout << tmp_r.board_[i][j]<<" ";
-            }
-            cout <<endl;
-        }
-        cout <<"??????????????"<<endl;
-        */
         get_index(tmp_r.board_,index);
         for(int i=0;i<8;i++){
-        //    print_index(index[i]);
             table[index[i]] += dW;
-        //    print_index(index[i]);
         }
         
 
     }
-    /*
-    for(int i=0;i<TABLE_SIZE;i++){
-        if(table[i] != 0.0){
-            print_index(i);
-        }
-    }
-    */
 }
 void Fib2584Ai::print_index(unsigned long index){
     unsigned long tmp = index;

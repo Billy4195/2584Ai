@@ -43,7 +43,7 @@ public:
   int move_row(int board_[4][4],MoveDirection move);
   double Evaluate(int board[4][4]);
   void get_index(int board[4][4],unsigned long index[8]);
-  void learning_evaluate();
+  void learning_evaluate(double v);
   void print_index(unsigned long index);
   void print_board(int board[4][4]);
 
