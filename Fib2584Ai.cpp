@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
+#include <limits>
 
 using namespace std;
 
@@ -14,6 +15,10 @@ const int fibonacci_[32] = {0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377,
 
 Fib2584Ai::Fib2584Ai()
 {
+}
+
+Fib2584Ai::~Fib2584Ai(){
+    flush_weight_table();
 }
 
 void Fib2584Ai::initialize(int argc, char* argv[])
@@ -38,7 +43,6 @@ void Fib2584Ai::gameOver(int board[4][4], int iScore)
     memcpy((void*)rec.board,board,sizeof(int)*4*4);
     memcpy((void*)rec.board_,board,sizeof(int)*4*4);
     rec.reward = 0;
-    Records.push(rec);
     learning_evaluate();
 	  return;
 }
@@ -61,6 +65,7 @@ void Fib2584Ai::get_weight_table(){
                 cout<<"weight table read failed"<<endl;
             }
         }
+        fclose(fp);
     }
 }
 
@@ -121,33 +126,36 @@ MoveDirection Fib2584Ai::select_maxV_move_and_record(int board[4][4],int board_[
     MoveDirection move;
     int move_t;
     record rec;
+    bool same[4];
     for(int i=0;i<4;i++){
-        value[i] = Evaluate(board_[i]) + reward[i]; 
+        same[i] = 1;
+        value[i] = Evaluate(board_[i]); 
     }
     for(int i=0;i<4;i++){
-        bool same=1;
         for(int j=0;j<4;j++){
             for(int k=0;k<4;k++){
                 if(board[j][k] !=board_[i][j][k]){
-                    same=0;
+                    same[i]=0;
                     break;
                 }
             }
         }
-        if(same){
-            value[i] = 0.0;
-        }
     }
-    V_max = value[0];
-    max_list.push_back(0);
-    for(int i=1;i<4;i++){
-        if(value[i] > V_max){
+    for(int i=0;i<4;i++){
+        if(same[i])
+          continue;
+        if(max_list.empty() || value[i] > V_max){
             V_max = value[i];
             max_list.clear();
             max_list.push_back(i);
         }else if(value[i] == V_max){
             max_list.push_back(i);
         }
+    }
+    if(Records.size() > 10000){
+        for(int i=0;i<4;i++){
+            cout << value[i] <<" "<<same[i]<<" ";
+        }cout <<endl;
     }
     move_t = max_list[rand() % max_list.size()];
     move = static_cast<MoveDirection>(move_t);
@@ -166,6 +174,25 @@ int Fib2584Ai::move_col(int board_[4][4],MoveDirection move){
     int it = move == MOVE_UP ? 1 : -1;
     for(int i=0;i<4;i++){
         for(int j=start_row; j != end_row ; j += it){
+            if(board_[j][i] == 0){
+                while(board_[j][i]==0){
+                    bool move =0;
+                    for(int k=j;k!= end_row+it;k+=it){
+                        if(board_[k][i] != 0){
+                            move = 1;
+                            break;
+                        }
+                    }
+                    if(move){
+                        for(int k=j;k != end_row;k += it){
+                            board_[k][i] = board_[k+it][i];
+                        }
+                        board_[end_row][i] = 0;
+                    }else{
+                        break;
+                    }
+                }
+            }
             if((board_[j][i] == board_[j+it][i] && board_[j][i] == 1) ||
                 (board_[j][i] >= 1 && board_[j+it][i] >= 1 &&abs(board_[j][i] 
                 - board_[j+it][i]) == 1) ){
@@ -187,6 +214,25 @@ int Fib2584Ai::move_row(int board_[4][4],MoveDirection move){
     int it = move == MOVE_LEFT ? 1 : -1;
     for(int i=0;i<4;i++){
         for(int j=start_col; j != end_col ; j += it){
+            if(board_[i][j] == 0){
+                while(board_[i][j] == 0){
+                    bool move =0;
+                    for(int k=j;k!= end_col+it;k+=it){
+                        if(board_[i][k] != 0){
+                            move = 1;
+                            break;
+                        }
+                    }
+                    if(move){
+                        for(int k=j; k!= end_col; k += it){
+                            board_[i][k] = board_[i][k+it];
+                        }
+                        board_[i][end_col] = 0;
+                    }else{
+                        break;
+                    }
+                }
+            }
             if((board_[i][j] == board_[i][j+it] && board_[i][j] == 1) ||
                 (board_[i][j] >= 1 && board_[i][j+it] >= 1 &&abs(board_[i][j] 
                 - board_[i][j+it]) == 1) ){
@@ -232,41 +278,51 @@ void Fib2584Ai::get_index(int board[4][4],unsigned long index[8]){
     }
 }
 void Fib2584Ai::learning_evaluate(){
-    double R = 0.0025;
+    double R = 0.01;
     double dV;
     double dW;
     double len = 2*sqrt(2);
     unsigned long index[8];
     record tmp_r;
     tmp_r = Records.top();
-    dV = 0 - Evaluate(tmp_r.board) ;
+    dV = 0 - Evaluate(tmp_r.board_) ;
     dW = dV * R / len;
     get_index(tmp_r.board,index);
     for(int i=0;i<8;i++){
         table[index[i]] += dW; 
     }
-    Records.pop();
 
-    while(!Records.empty()){
+    while(Records.size() > 1){
         tmp_r = Records.top();
+        Records.pop();
 
-        dV = Evaluate(tmp_r.board_) + tmp_r.reward - Evaluate(tmp_r.board) ;
+        dV = Evaluate(tmp_r.board_) + tmp_r.reward - Evaluate(Records.top().board_) ;
         dW = dV * R / len;
-/*        for(int i=0;i<4;i++){
+        /*
+        for(int i=0;i<4;i++){
             for(int j=0;j<4;j++){
-                cout << tmp_r.board[i][j]<<" ";
+                cout << tmp_r.board_[i][j]<<" ";
             }
             cout <<endl;
-        }*/
-        get_index(tmp_r.board,index);
-        for(int i=0;i<8;i++){
-            //print_index(index[i]);
-            table[index[i]] += dW;
-            //print_index(index[i]);
         }
+        cout <<"??????????????"<<endl;
+        */
+        get_index(tmp_r.board_,index);
+        for(int i=0;i<8;i++){
+        //    print_index(index[i]);
+            table[index[i]] += dW;
+        //    print_index(index[i]);
+        }
+        
 
-        Records.pop();
     }
+    /*
+    for(int i=0;i<TABLE_SIZE;i++){
+        if(table[i] != 0.0){
+            print_index(i);
+        }
+    }
+    */
 }
 void Fib2584Ai::print_index(unsigned long index){
     unsigned long tmp = index;
@@ -275,4 +331,13 @@ void Fib2584Ai::print_index(unsigned long index){
         tmp /= F_MAX;
     }
     cout << table[index]<<endl;
+}
+void Fib2584Ai::print_board(int board[4][4]){
+    cout <<"Start"<<endl;
+    for(int i=0;i<4;i++){
+        for(int j=0;j<4;j++){
+            cout<<board[i][j]<<" ";
+        }cout <<endl;
+    }
+    cout <<"End"<<endl;
 }

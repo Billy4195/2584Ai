@@ -21,6 +21,7 @@ class Fib2584Ai
 {
 public:
 	Fib2584Ai();
+  ~Fib2584Ai();
 	// initialize ai
 	void initialize(int argc, char* argv[]);
 	// generate one move
@@ -44,6 +45,7 @@ public:
   void get_index(int board[4][4],unsigned long index[8]);
   void learning_evaluate();
   void print_index(unsigned long index);
+  void print_board(int board[4][4]);
 
   stack<record> Records;
   vector<weight> table;
