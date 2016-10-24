@@ -42,6 +42,8 @@ public:
   int move_row(int board_[4][4],MoveDirection move);
   double Evaluate(int board[4][4]);
   void get_index(int board[4][4],unsigned long index[8]);
+  void learning_evaluate();
+  void print_index(unsigned long index);
 
   stack<record> Records;
   vector<weight> table;

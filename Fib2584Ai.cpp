@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#include <cmath>
 
 using namespace std;
 
@@ -32,6 +33,13 @@ MoveDirection Fib2584Ai::generateMove(int board[4][4])
 
 void Fib2584Ai::gameOver(int board[4][4], int iScore)
 {
+    record rec;
+    transform_board(board);
+    memcpy((void*)rec.board,board,sizeof(int)*4*4);
+    memcpy((void*)rec.board_,board,sizeof(int)*4*4);
+    rec.reward = 0;
+    Records.push(rec);
+    learning_evaluate();
 	  return;
 }
 
@@ -115,6 +123,20 @@ MoveDirection Fib2584Ai::select_maxV_move_and_record(int board[4][4],int board_[
     record rec;
     for(int i=0;i<4;i++){
         value[i] = Evaluate(board_[i]) + reward[i]; 
+    }
+    for(int i=0;i<4;i++){
+        bool same=1;
+        for(int j=0;j<4;j++){
+            for(int k=0;k<4;k++){
+                if(board[j][k] !=board_[i][j][k]){
+                    same=0;
+                    break;
+                }
+            }
+        }
+        if(same){
+            value[i] = 0.0;
+        }
     }
     V_max = value[0];
     max_list.push_back(0);
@@ -208,4 +230,49 @@ void Fib2584Ai::get_index(int board[4][4],unsigned long index[8]){
         index[4+i] = tmp;
         tmp = 0;
     }
+}
+void Fib2584Ai::learning_evaluate(){
+    double R = 0.0025;
+    double dV;
+    double dW;
+    double len = 2*sqrt(2);
+    unsigned long index[8];
+    record tmp_r;
+    tmp_r = Records.top();
+    dV = 0 - Evaluate(tmp_r.board) ;
+    dW = dV * R / len;
+    get_index(tmp_r.board,index);
+    for(int i=0;i<8;i++){
+        table[index[i]] += dW; 
+    }
+    Records.pop();
+
+    while(!Records.empty()){
+        tmp_r = Records.top();
+
+        dV = Evaluate(tmp_r.board_) + tmp_r.reward - Evaluate(tmp_r.board) ;
+        dW = dV * R / len;
+/*        for(int i=0;i<4;i++){
+            for(int j=0;j<4;j++){
+                cout << tmp_r.board[i][j]<<" ";
+            }
+            cout <<endl;
+        }*/
+        get_index(tmp_r.board,index);
+        for(int i=0;i<8;i++){
+            //print_index(index[i]);
+            table[index[i]] += dW;
+            //print_index(index[i]);
+        }
+
+        Records.pop();
+    }
+}
+void Fib2584Ai::print_index(unsigned long index){
+    unsigned long tmp = index;
+    for(int i=0;i<5;i++){
+        cout << tmp % F_MAX<<" ";
+        tmp /= F_MAX;
+    }
+    cout << table[index]<<endl;
 }
