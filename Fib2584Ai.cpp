@@ -174,36 +174,29 @@ int Fib2584Ai::move_col(int board_[4][4],MoveDirection move){
     int end_row = move == MOVE_UP ? 3 : 0;
     int it = move == MOVE_UP ? 1 : -1;
     for(int i=0;i<4;i++){
-        for(int j=start_row; j != end_row ; j += it){
-            if(board_[j][i] == 0){
-                while(board_[j][i]==0){
-                    bool move =0;
-                    for(int k=j;k!= end_row+it;k+=it){
-                        if(board_[k][i] != 0){
-                            move = 1;
-                            break;
-                        }
-                    }
-                    if(move){
-                        for(int k=j;k != end_row;k += it){
-                            board_[k][i] = board_[k+it][i];
-                        }
-                        board_[end_row][i] = 0;
-                    }else{
-                        break;
-                    }
+        for(int j=0;j<3;j++){       //shift for white space
+            for(int k=start_row;k != end_row;k += it){
+                if(board_[k][i] == 0){
+                    board_[k][i] = board_[k+it][i];
+                    board_[k+it][i] = 0;
                 }
             }
+        }
+        for(int j=start_row; j != end_row ; j += it){
             if((board_[j][i] == board_[j+it][i] && board_[j][i] == 1) ||
                 (board_[j][i] >= 1 && board_[j+it][i] >= 1 &&abs(board_[j][i] 
                 - board_[j+it][i]) == 1) ){
                 board_[j][i] = MAX(board_[j][i],board_[j+it][i]) + 1;
+                board_[j+it][i] = 0;
                 reward += fibonacci_[ board_[j][i] ];
-                for(int k=j+it; k!= end_row; k += it){
+            }
+        }
+        for(int j=0;j<3;j++){       //shift for white space
+            for(int k=start_row;k != end_row;k += it){
+                if(board_[k][i] == 0){
                     board_[k][i] = board_[k+it][i];
+                    board_[k+it][i] = 0;
                 }
-                board_[end_row][i] = 0;
-                j -= it;
             }
         }
     }
@@ -215,36 +208,29 @@ int Fib2584Ai::move_row(int board_[4][4],MoveDirection move){
     int end_col = move == MOVE_LEFT ? 3 : 0;
     int it = move == MOVE_LEFT ? 1 : -1;
     for(int i=0;i<4;i++){
-        for(int j=start_col; j != end_col ; j += it){
-            if(board_[i][j] == 0){
-                while(board_[i][j] == 0){
-                    bool move =0;
-                    for(int k=j;k!= end_col+it;k+=it){
-                        if(board_[i][k] != 0){
-                            move = 1;
-                            break;
-                        }
-                    }
-                    if(move){
-                        for(int k=j; k!= end_col; k += it){
-                            board_[i][k] = board_[i][k+it];
-                        }
-                        board_[i][end_col] = 0;
-                    }else{
-                        break;
-                    }
+        for(int j=0;j<3;j++){
+            for(int k=start_col; k != end_col; k+= it){
+                if(board_[i][k] == 0){
+                    board_[i][k] = board_[i][k+it];
+                    board_[i][k+it] = 0;
                 }
             }
+        }
+        for(int j=start_col; j != end_col ; j += it){
             if((board_[i][j] == board_[i][j+it] && board_[i][j] == 1) ||
                 (board_[i][j] >= 1 && board_[i][j+it] >= 1 &&abs(board_[i][j] 
                 - board_[i][j+it]) == 1) ){
                 board_[i][j] = MAX(board_[i][j],board_[i][j+it]) + 1;
+                board_[i][j+it] = 0;
                 reward += fibonacci_[ board_[i][j] ];
-                for(int k=j+it; k!= end_col; k += it){
+            }
+        }
+        for(int j=0;j<3;j++){
+            for(int k=start_col; k != end_col; k+= it){
+                if(board_[i][k] == 0){
                     board_[i][k] = board_[i][k+it];
+                    board_[i][k+it] = 0;
                 }
-                board_[i][end_col] = 0;
-                j -= it;
             }
         }
     }
@@ -281,7 +267,7 @@ void Fib2584Ai::get_index(int board[4][4],unsigned long index[8]){
     }
 }
 void Fib2584Ai::learning_evaluate(double v){
-    double R = 0.01;
+    double R = 0.00005;
     double dV;
     double dW;
     double len = 2*sqrt(2);
