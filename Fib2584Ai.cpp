@@ -10,7 +10,7 @@ using namespace std;
 const int fibonacci_[32] = {0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811, 514229, 832040, 1346269, 2178309};
 
 #define F_MAX 22
-#define TABLE_SIZE 8*F_MAX*F_MAX*F_MAX*F_MAX
+#define TABLE_SIZE F_MAX*F_MAX*F_MAX*F_MAX*F_MAX*F_MAX
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
 Fib2584Ai::Fib2584Ai()
@@ -237,10 +237,10 @@ int Fib2584Ai::move_row(int board_[4][4],MoveDirection move){
     return reward;
 }
 double Fib2584Ai::Evaluate(int board[4][4]){
-    unsigned long index[8],ind;
+    unsigned long index[24];
     double value=0.0;
-    get_index(board,index);
-    for(int i=0;i<8;i++){
+    get_24index(board,index);
+    for(int i=0;i<24;i++){
         value += table[index[i]];
     }
     return value;
@@ -266,12 +266,57 @@ void Fib2584Ai::get_index(int board[4][4],unsigned long index[8]){
         tmp = 0;
     }
 }
+
+void Fib2584Ai::get_24index(int board[4][4],unsigned long index[24]){
+    int count = 0;
+    for(int i=0;i<3;i++){ //1
+        index[count++] = get_6T_index(board[i/4][i%4],board[(i+1)/4][(i+1)%4],board[(i+4)/4][(i+4)%4],board[(i+5)/4][(i+5)%4],board[(i+8)/4][(i+8)%4],board[(i+12)/4][(i+12)%4]);
+    }
+    for(int i=12;i<15;i++){ // 2
+        index[count++] = get_6T_index(board[i/4][i%4],board[(i+1)/4][(i+1)%4],board[(i-4)/4][(i-4)%4],board[(i-3)/4][(i-3)%4],board[(i-8)/4][(i-8)%4],board[(i-12)/4][(i-12)%4]);
+    }
+    for(int i=1;i<4;i++){ // 3
+        index[count++] = get_6T_index(board[i/4][i%4],board[(i-1)/4][(i-1)%4],board[(i+4)/4][(i+4)%4],board[(i+3)/4][(i+3)%4],board[(i+8)/4][(i+8)%4],board[(i+12)/4][(i+12)%4]);
+    }
+    for(int i=13;i<16;i++){ // 4
+        index[count++] = get_6T_index(board[i/4][i%4],board[(i-1)/4][(i-1)%4],board[(i-4)/4][(i-4)%4],board[(i-5)/4][(i-5)%4],board[(i-8)/4][(i-8)%4],board[(i-12)/4][(i-12)%4]);
+    }
+    for(int i=3;i<12;i += 4){ // 5
+        index[count++] = get_6T_index(board[i/4][i%4],board[(i+4)/4][(i+4)%4],board[(i-1)/4][(i-1)%4],board[(i+3)/4][(i+3)%4],board[(i-2)/4][(i-2)%4],board[(i-3)/4][(i-3)%4]);
+    }
+    for(int i=0;i<9;i += 4){ // 6
+        index[count++] = get_6T_index(board[i/4][i%4],board[(i+4)/4][(i+4)%4],board[(i+1)/4][(i+1)%4],board[(i+5)/4][(i+5)%4],board[(i+2)/4][(i+2)%4],board[(i+3)/4][(i+3)%4]);
+    }
+    for(int i=7;i<16;i += 4){ // 7
+        index[count++] = get_6T_index(board[i/4][i%4],board[(i-4)/4][(i-4)%4],board[(i-1)/4][(i-1)%4],board[(i-5)/4][(i-5)%4],board[(i-2)/4][(i-2)%4],board[(i-3)/4][(i-3)%4]);
+    }
+    for(int i=4;i<13;i += 4){ // 8
+        index[count++] = get_6T_index(board[i/4][i%4],board[(i-4)/4][(i-4)%4],board[(i+1)/4][(i+1)%4],board[(i-3)/4][(i-3)%4],board[(i+2)/4][(i+2)%4],board[(i+3)/4][(i+3)%4]);
+    }
+}
+
+unsigned long Fib2584Ai::get_6T_index(int a,int b,int c,int d,int e,int f){
+    unsigned long index=0;
+    index += a ;
+    index *= 22;
+    index += b;
+    index *= 22;
+    index += c;
+    index *= 22;
+    index += d;
+    index *= 22;
+    index += e;
+    index *= 22;
+    index += f;
+    return index;
+}
+
 void Fib2584Ai::learning_evaluate(double v){
-    double R = 0.00005;
+    double R = 0.001;
     double dV;
     double dW;
-    double len = 2*sqrt(2);
-    unsigned long index[8];
+    double len = 2*sqrt(6);
+    unsigned long index[24];
     record tmp_r;
 
     while(Records.size() > 1){
@@ -280,8 +325,8 @@ void Fib2584Ai::learning_evaluate(double v){
 
         dV = v  - Evaluate(tmp_r.board_) ;
         dW = dV * R / len;
-        get_index(tmp_r.board_,index);
-        for(int i=0;i<8;i++){
+        get_24index(tmp_r.board_,index);
+        for(int i=0;i<24;i++){
             table[index[i]] += dW;
         }
         
